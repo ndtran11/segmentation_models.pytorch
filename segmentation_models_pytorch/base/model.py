@@ -25,14 +25,18 @@ class SegmentationModel(torch.nn.Module):
         """Sequentially pass `x` trough model`s encoder, decoder and heads"""
         return self.encoder(x)
 
-    def forward(self, features):
+    def forward(self, x, is_feature = False):
         """Sequentially pass `x` trough model`s encoder, decoder and heads"""
 
-        decoder_output = self.decoder(*features)
+        if not is_feature:
+            self.check_input_shape(x)
+            x = self.encoder(x)
+
+        decoder_output = self.decoder(*x)
         masks = self.segmentation_head(decoder_output)
 
         if self.classification_head is not None:
-            labels = self.classification_head(features[-1])
+            labels = self.classification_head(x[-1])
             return masks, labels
 
         return masks
